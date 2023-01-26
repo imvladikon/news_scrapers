@@ -7,9 +7,9 @@ import requests
 from bs4 import BeautifulSoup
 from readability import readability
 
-from news_fetcher import ALL_FETCHERS
-from news_fetcher.article import Article
-from news_fetcher.html_fetcher import HtmlFetcher
+from news_scrapers.news_fetcher import ALL_FETCHERS, LinkPreviewFetcher
+from news_scrapers.news_fetcher.article import Article
+from news_scrapers.news_fetcher.html_fetcher import HtmlFetcher
 import os
 import glob
 
@@ -24,6 +24,7 @@ def get_files(folder, extensions):
 
 
 class BaseScraper:
+
     def __init__(
         self,
         url_pattern,
@@ -58,19 +59,16 @@ class BaseScraper:
         return soup.get_text().strip()
 
     def get_page_iterator(self):
-        return self._page_iterator()
+        return self._page_iterator(self)
 
     def _is_error_page(self, html: str) -> bool:
         return False
 
     def _process_page(self, html_and_url):
         html, url = html_and_url
-        html_and_url = self.fix_page(html, url)
-        if html_and_url:
-            html, url = html_and_url
-            article = self.parse_article(html, url)
-            if article:
-                return article, url
+        article = self.parse_article(html, url)
+        if article:
+            return article, url
         return None, url
 
     def __iter__(self):
@@ -94,15 +92,18 @@ class BaseScraper:
         return s.cookies
 
     @classmethod
-    def from_path(cls, path, url_pattern):
-        def _iterator():
+    def from_path(cls, path, **kwargs):
+        def _iterator(self):
             for file in get_files(path, ".html"):
                 file = Path(file)
                 html = file.read_text()
-                url = url_pattern.format(file.stem)
+                url = self.url_pattern.format(file.stem)
                 yield html, url
 
-        return cls(url_pattern=url_pattern, page_iterator=_iterator)
+        return cls(
+            page_iterator=_iterator,
+            **kwargs
+        )
 
     def fix_page(self, html, url):
         if self._is_error_page(html):
@@ -133,17 +134,38 @@ class BaseScraper:
         comments = soup.select_one("#single-post-comments")
         if comments:
             comments.decompose()
+        blockquote = soup.select("blockquote")
+        if blockquote:
+            for block in blockquote:
+                block.decompose()
+        tweets = soup.select(".twitter-tweet")
+        if tweets:
+            for tweet in tweets:
+                tweet.decompose()
         html = str(soup)
         return html, url
 
     def parse_article(self, html, url):
+        html, url = self.fix_page(html, url)
+        if html is None:
+            return None
+
         soup = BeautifulSoup(html, 'html.parser')
-        # soup.find("link", {"rel": "canonical"}).attrs["href"]
+
         articles = [fetcher().parse(html=html, url=url) for fetcher in ALL_FETCHERS]
         article = Article.combine_all(articles)
-        # text = soup.select_one(".article-body").text
-        # text = "\n".join(s for s in text.split("\n") if s.strip())
-        # article.text = text
+        link = soup.find("link", {"rel": "canonical"})
+        if link:
+            article.canonical_link = link.attrs["href"]
+        if not article.text:
+            preview = LinkPreviewFetcher().parse(html, url)
+            article.text = preview.text
+            if not article.text:
+                text = soup.select_one(".article-body")
+                if text:
+                    text = text.get_text()
+                    text = "\n".join(s for s in text.split("\n") if s.strip())
+                    article.text = text
         article.language = self.language
         article.site_name = self.site_name
         return article

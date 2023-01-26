@@ -20,7 +20,7 @@ class LinkPreviewFetcher(BaseArticleFetcher):
         return Article(
             url=url or preview.link,
             title=preview.title,
-            text="",
+            text=preview.jsonld.article_body or "",
             published=preview.opengraph.published_time,
             meta_language=None,
             authors=preview.opengraph.author,

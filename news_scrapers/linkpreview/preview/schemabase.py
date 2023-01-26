@@ -47,6 +47,12 @@ class SchemaPreviewBase(PreviewBase):
                 return item["description"]
 
     @property
+    def article_body(self):
+        for item in self.sorted_schema:
+            if "articleBody" in item:
+                return item["articleBody"]
+
+    @property
     def image(self):
         for item in self.sorted_schema:
             if "image" in item:

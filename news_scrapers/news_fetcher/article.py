@@ -23,6 +23,7 @@ class Article:
     toc: Optional[List[str]] = None
     site_name: Optional[str] = None
     language: Optional[str] = None
+    canonical_link: Optional[str] = None
 
     def is_empty(self):
         return self.url == '' and self.title == '' and self.text == ''

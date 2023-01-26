@@ -7,11 +7,11 @@ from news_scrapers.base_scraper import BaseScraper
 
 
 class KanScraper(BaseScraper):
+
     def __init__(self, first_page=1, last_page=143831, page_iterator=None, **kwargs):
 
-        url_pattern = "https://www.kan.org.il/item/?itemId={}"
         super().__init__(
-            url_pattern=url_pattern,
+            url_pattern="https://www.kan.org.il/item/?itemId={}",
             first_page=first_page,
             last_page=last_page,
             page_iterator=page_iterator,
@@ -37,7 +37,20 @@ class KanScraper(BaseScraper):
 
 
 if __name__ == '__main__':
-    scraper = KanScraper(n_threads=4)
-    for article, url in scraper:
-        print(article)
-        break
+    from tqdm import tqdm
+    import requests
+    from news_scrapers.writers import JsonWriter
+    from news_scrapers.news_fetcher import LinkPreviewFetcher
+
+
+
+    scraper = KanScraper.from_path(path="/media/robert/BC7CA8E37CA899A2/datasets/kan")
+    url = "https://www.kan.org.il/item/?itemId=60959"
+    html = requests.get(url).text
+
+    article = scraper.parse_article(html, url)
+    print(article.to_json())
+    # with JsonWriter("kan.jsonl") as writer:
+    #     for article, url in tqdm(scraper):
+    #         writer.write(article.to_json())
+
