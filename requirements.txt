@@ -8,7 +8,7 @@ random-user-agent==1.0.1
 news-please==1.5.22
 random-user-agent==1.0.1
 playwright==1.23.1
-newspaper @ git+https://github.com/codelucas/newspaper
+newspaper3k @ git+https://github.com/codelucas/newspaper.git
 selenium==4.8.0
 nltk==3.8.1
 dateparser
