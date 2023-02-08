@@ -14,7 +14,8 @@ def read_requirements(reqs_path):
         reqs = [
             line.strip()
             for line in f
-            if not line.strip().startswith('#') and not line.strip().startswith('--')
+            if (not line.strip().startswith('#')
+                and not line.strip().startswith('--'))
         ]
     return reqs
 
@@ -31,8 +32,13 @@ setup(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
     ],
     packages=find_packages(exclude=['tests*', 'scripts', 'utils']),
