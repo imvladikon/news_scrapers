@@ -34,6 +34,7 @@ class BaseScraper:
         last_page=1,
         page_iterator=None,
         n_threads=1,
+        fetcher_kwargs=None,
     ):
         self._first_page = first_page
         self._last_page = last_page
@@ -45,11 +46,12 @@ class BaseScraper:
         else:
             self._page_iterator = page_iterator
         self.n_threads = n_threads
+        self.fetcher_kwargs = fetcher_kwargs or {}
 
     def default_page_iterator(self):
         for page_idx in range(self._first_page, self._last_page + 1):
             url = self.url_pattern.format(page_idx)
-            html = HtmlFetcher().fetch(url)
+            html = HtmlFetcher(**self.fetcher_kwargs).fetch(url)
             yield html, url
 
     def make_readable(self, html: str) -> str:
