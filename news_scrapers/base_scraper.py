@@ -47,11 +47,14 @@ class BaseScraper:
             self._page_iterator = page_iterator
         self.n_threads = n_threads
         self.fetcher_kwargs = fetcher_kwargs or {}
+    @property
+    def fetcher(self):
+        return HtmlFetcher(**self.fetcher_kwargs)
 
     def default_page_iterator(self):
         for page_idx in range(self._first_page, self._last_page + 1):
             url = self.url_pattern.format(page_idx)
-            html = HtmlFetcher(**self.fetcher_kwargs).fetch(url)
+            html = self.fetcher.fetch(url)
             yield html, url
 
     def make_readable(self, html: str) -> str:
@@ -61,7 +64,7 @@ class BaseScraper:
         return soup.get_text().strip()
 
     def get_page_iterator(self):
-        return self._page_iterator(self)
+        return self._page_iterator()
 
     def _is_error_page(self, html: str) -> bool:
         return False
