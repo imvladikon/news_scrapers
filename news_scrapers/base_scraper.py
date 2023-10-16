@@ -64,7 +64,7 @@ class BaseScraper:
         return soup.get_text().strip()
 
     def get_page_iterator(self):
-        return self._page_iterator()
+        return self._page_iterator(self)
 
     def _is_error_page(self, html: str) -> bool:
         return False
