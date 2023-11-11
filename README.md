@@ -6,7 +6,7 @@ This repository contains scripts for scraping news from different sources,
 tailored for research purposes such as NLP and summarization. 
 The scripts enable the extraction of news content along with meta tags information, 
 JSON+LD data, crawling sitemap files, and more, 
-enhancing the capabilities for comprehensive data analysis and exploration
+enhancing the capabilities for comprehensive data analysis and exploration    
 Disclaimer: The scripts are provided as-is, and intended for customization and further development.
 
 ## Example
