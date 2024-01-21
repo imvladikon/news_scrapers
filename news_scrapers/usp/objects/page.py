@@ -1,5 +1,5 @@
-"""Objects that represent a page found in one of the sitemaps."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import datetime
 from decimal import Decimal
 from enum import Enum, unique
@@ -221,6 +221,7 @@ class SitemapPage(object):
         '__last_modified',
         '__change_frequency',
         '__news_story',
+        '__parent_url',
     ]
 
     def __init__(self,
@@ -228,7 +229,8 @@ class SitemapPage(object):
                  priority: Decimal = SITEMAP_PAGE_DEFAULT_PRIORITY,
                  last_modified: Optional[datetime.datetime] = None,
                  change_frequency: Optional[SitemapPageChangeFrequency] = None,
-                 news_story: Optional[SitemapNewsStory] = None):
+                 news_story: Optional[SitemapNewsStory] = None,
+                 parent_url: Optional[str] = None):
         """
         Initialize a new sitemap-derived page.
 
@@ -243,6 +245,7 @@ class SitemapPage(object):
         self.__last_modified = last_modified
         self.__change_frequency = change_frequency
         self.__news_story = news_story
+        self.__parent_url = parent_url
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, SitemapPage):
@@ -326,3 +329,12 @@ class SitemapPage(object):
         :return: Google News story attached to the URL.
         """
         return self.__news_story
+
+    @property
+    def parent_url(self) -> Optional[str]:
+        """
+        Return parent URL of this page.
+
+        :return: Parent URL of this page.
+        """
+        return self.__parent_url

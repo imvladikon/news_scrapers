@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import glob
+import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+from typing import Iterable
 
 import requests
 from bs4 import BeautifulSoup
 from readability import readability
 
+from news_scrapers.error_page_classifiers import DummyErrorPageClassifier
 from news_scrapers.news_fetcher import ALL_FETCHERS, LinkPreviewFetcher
 from news_scrapers.news_fetcher.article import Article
 from news_scrapers.news_fetcher.html_fetcher import HtmlFetcher
-import os
-import glob
+from news_scrapers.page_iterators import SitemapIterator
 
 
 def get_files(folder, extensions):
@@ -24,38 +27,54 @@ def get_files(folder, extensions):
 
 
 class BaseScraper:
+    _site_url = None
+    _url_pattern = None
+    _language = None
+    _site_name = None
+    _first_page = None
+    _last_page = None
 
     def __init__(
-        self,
-        url_pattern,
-        language,
-        site_name,
-        first_page=1,
-        last_page=1,
-        page_iterator=None,
-        n_threads=1,
-        fetcher_kwargs=None,
+            self,
+            page_iterator=None,
+            n_threads=1,
+            fetcher_kwargs=None,
+            error_page_cls=DummyErrorPageClassifier()
     ):
-        self._first_page = first_page
-        self._last_page = last_page
-        self.url_pattern = url_pattern
-        self.language = language
-        self.site_name = site_name
         if page_iterator is None:
-            self._page_iterator = self.default_page_iterator
+            self._page_iterator = SitemapIterator(self.site_url)
         else:
             self._page_iterator = page_iterator
         self.n_threads = n_threads
         self.fetcher_kwargs = fetcher_kwargs or {}
+        self.error_page_cls = error_page_cls
+        self._fetcher = None
+
     @property
     def fetcher(self):
-        return HtmlFetcher(**self.fetcher_kwargs)
+        if self._fetcher is None:
+            self._fetcher = HtmlFetcher(**self.fetcher_kwargs)
+        return self._fetcher
 
-    def default_page_iterator(self):
-        for page_idx in range(self._first_page, self._last_page + 1):
-            url = self.url_pattern.format(page_idx)
-            html = self.fetcher.fetch(url)
-            yield html, url
+    @property
+    def url_pattern(self):
+        return self._url_pattern
+
+    @property
+    def language(self):
+        return self._language
+
+    @property
+    def site_name(self):
+        return self._site_name
+
+    @property
+    def first_page(self):
+        return self._first_page
+
+    @property
+    def last_page(self):
+        return self._last_page
 
     def make_readable(self, html: str) -> str:
         doc = readability.Document(html)
@@ -63,11 +82,16 @@ class BaseScraper:
         soup = BeautifulSoup(html, 'html.parser')
         return soup.get_text().strip()
 
-    def get_page_iterator(self):
-        return self._page_iterator(self)
+    @property
+    def page_iterator(self) -> Iterable[str]:
+        return self._page_iterator
+
+    @property
+    def site_url(self):
+        return self._site_url
 
     def _is_error_page(self, html: str) -> bool:
-        return False
+        return self.error_page_cls(html)
 
     def _process_page(self, html_and_url):
         html, url = html_and_url
@@ -79,15 +103,15 @@ class BaseScraper:
     def __iter__(self):
         n_threads = self.n_threads
         if n_threads == 1:
-            for html_and_url in self.get_page_iterator():
-                article_and_url = self._process_page(html_and_url)
+            for url in self.page_iterator:
+                html = self.fetcher.fetch(url)
+                article_and_url = self._process_page((html, url))
                 if article_and_url[0]:
                     yield article_and_url
         else:
             pool = ThreadPool(n_threads)
-            for article_and_url in pool.imap_unordered(
-                self._process_page, self.get_page_iterator()
-            ):
+            iter_html_url = (self.fetcher.fetch(url) for url in self.page_iterator)
+            for article_and_url in pool.imap_unordered(self._process_page, iter_html_url):
                 if article_and_url[0]:
                     yield article_and_url
 
@@ -111,8 +135,6 @@ class BaseScraper:
         )
 
     def fix_page(self, html, url):
-        if self._is_error_page(html):
-            return None
         soup = BeautifulSoup(html, 'html.parser')
         # canonical_url = soup.find("link", {"rel": "canonical"}).attrs["href"]
         # if canonical_url != url:
@@ -151,10 +173,9 @@ class BaseScraper:
         return html, url
 
     def parse_article(self, html, url):
-        html, url = self.fix_page(html, url)
-        if html is None:
+        if self._is_error_page(html):
             return None
-
+        html, url = self.fix_page(html, url)
         soup = BeautifulSoup(html, 'html.parser')
 
         articles = [fetcher().parse(html=html, url=url) for fetcher in ALL_FETCHERS]

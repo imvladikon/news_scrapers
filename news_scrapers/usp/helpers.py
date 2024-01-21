@@ -1,5 +1,5 @@
-"""Helper utilities."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import datetime
 import gzip as gzip_lib
 import html
@@ -10,9 +10,9 @@ from urllib.parse import urlparse, unquote_plus, urlunparse
 
 from dateutil.parser import parse as dateutil_parse
 
-from .exceptions import SitemapException, GunzipException, StripURLToHomepageException
-from .log import create_logger
-from .web_client.abstract_client import (
+from news_scrapers.usp.exceptions import SitemapException, GunzipException, StripURLToHomepageException
+from news_scrapers.usp.log import create_logger
+from news_scrapers.usp.web_client.abstract_client import (
     AbstractWebClient,
     AbstractWebClientSuccessResponse,
     WebClientErrorResponse,

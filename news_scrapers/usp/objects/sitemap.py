@@ -1,12 +1,12 @@
-"""Objects that represent one of the found sitemaps."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import abc
 import os
 import pickle
 import tempfile
 from typing import List, Iterator
 
-from .page import SitemapPage
+from news_scrapers.usp.objects.page import SitemapPage
 
 
 class AbstractSitemap(object, metaclass=abc.ABCMeta):

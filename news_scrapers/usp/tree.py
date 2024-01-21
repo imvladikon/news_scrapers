@@ -1,13 +1,14 @@
-"""Helpers to generate a sitemap tree."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from typing import Optional
 
-from .exceptions import SitemapException
-from .fetch_parse import SitemapFetcher
-from .helpers import is_http_url, strip_url_to_homepage
-from .log import create_logger
-from .objects.sitemap import AbstractSitemap, InvalidSitemap, IndexWebsiteSitemap, IndexRobotsTxtSitemap
-from .web_client.abstract_client import AbstractWebClient
+from news_scrapers.usp.exceptions import SitemapException
+from news_scrapers.usp.fetch_parse import SitemapFetcher
+from news_scrapers.usp.helpers import is_http_url, strip_url_to_homepage
+from news_scrapers.usp.log import create_logger
+from news_scrapers.usp.objects.sitemap import (AbstractSitemap, InvalidSitemap,
+                                               IndexWebsiteSitemap, IndexRobotsTxtSitemap)
+from news_scrapers.usp.web_client.abstract_client import AbstractWebClient
 
 log = create_logger(__name__)
 
@@ -22,6 +23,17 @@ _UNPUBLISHED_SITEMAP_PATHS = {
     'sitemap',
     'admin/config/search/xmlsitemap',
     'sitemap/sitemap-index.xml',
+    # 'sitemap-main.xml',
+    # 'sitemap-main-index.xml',
+    # 'main-sitemap.xml',
+    # 'sitemap1.xml',
+    # 'sitemap2.xml',
+    # 'sitemapindex.xml',
+    # 'sitemaps/sitemap.xml',
+    # 'sitemaps/main-sitemap.xml',
+    # 'sitemaps/sitemap_index.xml',
+    # 'sitemaps/sitemap-index.xml',
+    # 'sitemaps/main-sitemap-index.xml',
 }
 """Paths which are not exposed in robots.txt but might still contain a sitemap."""
 
@@ -50,7 +62,7 @@ def sitemap_tree_for_homepage(homepage_url: str, web_client: Optional[AbstractWe
     sitemaps = []
 
     robots_txt_fetcher = SitemapFetcher(url=robots_txt_url, web_client=web_client, recursion_level=0)
-    robots_txt_sitemap = robots_txt_fetcher.sitemap()
+    robots_txt_sitemap = robots_txt_fetcher.sitemap(parent_url=homepage_url)
     sitemaps.append(robots_txt_sitemap)
 
     sitemap_urls_found_in_robots_txt = set()

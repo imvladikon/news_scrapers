@@ -72,5 +72,8 @@ class Article:
     def combine_all(articles: List['Article']) -> 'Article':
         return reduce(lambda x, y: x.combine_with(y), articles, Article.get_empty())
 
-    def to_json(self) -> str:
-        return json.dumps(self.__dict__, ensure_ascii=False)
+    def to_json(self, **kwargs) -> str:
+        return json.dumps(self.to_dict(), ensure_ascii=False, **kwargs)
+
+    def to_dict(self) -> Dict:
+        return self.__dict__

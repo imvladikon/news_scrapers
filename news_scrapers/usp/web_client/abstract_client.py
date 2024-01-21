@@ -1,5 +1,5 @@
-"""Abstract web client class."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import abc
 from http import HTTPStatus
 from typing import Optional

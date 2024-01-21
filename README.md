@@ -19,35 +19,42 @@ Custom scraper example:
 from news_scrapers.base_scraper import BaseScraper
 
 class CustomScraper(BaseScraper):
-    def __init__(
-        self,
-        url_pattern=<url_pattern>,
-        first_page=1,
-        last_page=<last_page>,
-        page_iterator=None,
-        **kwargs
-    ):
-```
-where need to pass or range of pages (which will be used in `url_pattern`) or `page_iterator`.
-possible to pass `page_iterator` as a function which will read the page from folder or from web:
+    
+    _site_url = <site_url>
+    _site_name = <site_name>
+    _language = <language>
 
-```python
-def page_iterator(self):
-    for _ in range(1, 10):
-        url = self.url_pattern.format(_)
-        html = requests.get(url).text
-        yield html, url
 ```
-
 
 And usage:
 
 ```python
 scraper = CustomScraper()
-for record in scraper:
-    print(record)
+for article, url in scraper:
+    print(article)
 ```
 
-where record is a dictionary with `text`, `description`, `title`, `url`, `date`, `author`, etc.
+
+By default, the scraper checks the `sitemap.xml` file and iterates over all pages.
+Otherwise, it is possible to pass `page_iterator` which will be used to iterate over pages.
+
+```python
+def page_iterator(self):
+    for _ in range(1, 10):
+        url = self.url_pattern.format(_)
+        yield url
+```
+```python
+scraper = CustomScraper(page_iterator=page_iterator())
+for article, url in scraper:
+    print(article)
+```
+
+And `article` is a data class with `text`, `description`, `title`, `url`, `date`, `author`, etc.
+If needed, it is possible to convert it to a dictionary using `article.to_dict()`, or to JSON using `article.to_json()`.
+
+
+
+
 
 

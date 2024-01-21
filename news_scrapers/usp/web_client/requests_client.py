@@ -1,5 +1,5 @@
-"""requests-based implementation of web client class."""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from http import HTTPStatus
 from typing import Optional
 
@@ -12,7 +12,6 @@ from .abstract_client import (
     WebClientErrorResponse,
     RETRYABLE_HTTP_STATUS_CODES,
 )
-from usp.__about__ import __version__
 
 
 class RequestsWebClientSuccessResponse(AbstractWebClientSuccessResponse):
@@ -60,7 +59,7 @@ class RequestsWebClientErrorResponse(WebClientErrorResponse):
 class RequestsWebClient(AbstractWebClient):
     """requests-based web client to be used by the sitemap fetcher."""
 
-    __USER_AGENT = 'ultimate_sitemap_parser/{}'.format(__version__)
+    __USER_AGENT = 'Googlebot-News'
 
     __HTTP_REQUEST_TIMEOUT = 60
     """
